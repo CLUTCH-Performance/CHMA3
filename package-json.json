@@ -1,0 +1,17 @@
+{
+  "name": "cmha-survey-chatbot",
+  "version": "1.0.0",
+  "description": "AI-powered CMHA survey analysis chatbot with Netlify Functions proxy",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required for static site'",
+    "deploy": "netlify deploy --prod"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": ["survey", "analysis", "ai", "chatbot", "cmha"],
+  "author": "Your Name",
+  "license": "MIT"
+}
