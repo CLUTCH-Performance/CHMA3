@@ -30,15 +30,15 @@ exports.handler = async (event, context) => {
 
   try {
     // Get API key from environment variable
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.ANTHROPIC_API_KEY_CMHA_SURVEY;
     
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY environment variable not set');
+      console.error('ANTHROPIC_API_KEY_CMHA_SURVEY environment variable not set');
       return {
         statusCode: 500,
         headers: corsHeaders,
         body: JSON.stringify({ 
-          error: 'Server configuration error: API key not configured. Please set ANTHROPIC_API_KEY environment variable in Netlify.' 
+          error: 'Server configuration error: API key not configured. Please set ANTHROPIC_API_KEY_CMHA_SURVEY environment variable in Netlify.' 
         })
       };
     }
