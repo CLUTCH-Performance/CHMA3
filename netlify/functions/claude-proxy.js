@@ -1,4 +1,4 @@
-// netlify/functions/claude-proxy.js (Updated with Claude Sonnet 4)
+// netlify/functions/claude-proxy.js
 exports.handler = async (event, context) => {
   console.log('Claude Proxy Function Called');
   console.log('Method:', event.httpMethod);
@@ -29,6 +29,20 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Get API key from environment variable
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    
+    if (!apiKey) {
+      console.error('ANTHROPIC_API_KEY environment variable not set');
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({ 
+          error: 'Server configuration error: API key not configured. Please set ANTHROPIC_API_KEY environment variable in Netlify.' 
+        })
+      };
+    }
+
     let requestData;
     
     try {
@@ -42,21 +56,13 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const { messages, apiKey, maxTokens } = requestData;
+    const { messages, maxTokens } = requestData;
 
     if (!messages || !Array.isArray(messages)) {
       return {
         statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({ error: 'Missing or invalid messages array' })
-      };
-    }
-
-    if (!apiKey || !apiKey.startsWith('sk-ant-')) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Missing or invalid API key' })
       };
     }
 
