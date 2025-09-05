@@ -320,7 +320,7 @@
                     </div>
                     <div class="stat-item">
                         <span>Questions:</span>
-                        <span class="stat-value" id="questionCount">24</span>
+                        <span class="stat-value" id="questionCount">40</span>
                     </div>
                     <div class="stat-item">
                         <span>Member Categories:</span>
@@ -357,136 +357,10 @@
         </div>
     </div>
 
-    <script>
-        // EMBEDDED SURVEY DATA - Compressed format to optimize tokens
-        const surveyData = {
-            columns: {
-                memberType: "Please indicate the category which best describes your company's membership.",
-                hardscapeMarket: "(Select all) Which market(s) do you participate in? - Hardscape Markets",
-                msvMarket: "(Select all) Which market(s) do you participate in? - MSV Markets",
-                masonryMarket: "(Select all) Which market(s) do you participate in? - Masonry Markets",
-                isRepresentative: "Are you the designated company member representative for CMHA?",
-                hasPosition: "Do you hold any positions in CMHA?",
-                importance: "Overall how important is membership in CMHA to your company?",
-                satisfaction: "Overall how satisfied are you with CMHA membership?",
-                nps: "How likely is it that you would recommend CMHA Membership to an industry colleague?",
-                value: "Based on the amount paid in dues would you say the value your company receives from your CMHA membership is:",
-                mission: "CMHA's mission is: To be the authority for segmental concrete products... Do you agree that CMHA is achieving this mission?",
-                vision: "CMHA's vision is: To drive acceptance and use... Do you agree that CMHA is achieving this vision?",
-                communication: "Communication from CMHA is sent…",
-                websiteEase: "On the CMHA website how easy is it to locate and access CMHA programs?",
-                staffResponsiveness: "How would you rate the responsiveness of CMHA's staff to your needs?"
-            },
-            
-            responses: [
-                ["Producer", "HMS", "Very Satisfied", "Extremely Important", 10, "Greater than dues"],
-                ["Producer", "HM", "Somewhat Satisfied", "Important", 8, "Equal to dues"],
-                ["Associate", "H", "Very Satisfied", "Important", 9, "Greater than dues"],
-                ["Producer", "HMS", "Somewhat Satisfied", "Important", 7, "Equal to dues"],
-                ["Contractor", "H", "Neither Satisfied or Dissatisfied", "Somewhat Important", 5, "Less than dues"],
-                ["Producer", "HM", "Very Satisfied", "Extremely Important", 9, "Far greater than dues"],
-                ["Producer", "MS", "Somewhat Satisfied", "Important", 8, "Equal to dues"],
-                ["Associate", "HMS", "Somewhat Satisfied", "Important", 7, "Equal to dues"],
-                ["Producer", "H", "Very Satisfied", "Extremely Important", 10, "Greater than dues"],
-                ["Dealer", "H", "Somewhat Satisfied", "Important", 6, "Equal to dues"],
-                ["Producer", "HM", "Somewhat Satisfied", "Important", 8, "Greater than dues"],
-                ["Professional", "HMS", "Very Satisfied", "Important", 9, "Greater than dues"],
-                ["Producer", "H", "Neither Satisfied or Dissatisfied", "Somewhat Important", 4, "Less than dues"],
-                ["Associate", "H", "Very Satisfied", "Extremely Important", 10, "Far greater than dues"],
-                ["Producer", "HMS", "Somewhat Satisfied", "Important", 7, "Equal to dues"],
-                ["Producer", "M", "Somewhat Dissatisfied", "Important", 5, "Less than dues"],
-                ["Contractor", "H", "Somewhat Satisfied", "Important", 8, "Greater than dues"],
-                ["Producer", "HM", "Very Satisfied", "Extremely Important", 9, "Greater than dues"],
-                ["Associate", "H", "Somewhat Satisfied", "Important", 7, "Equal to dues"],
-                ["Producer", "HMS", "Very Satisfied", "Important", 9, "Greater than dues"]
-            ],
-            
-            openEndedThemes: {
-                satisfactionReasons: {
-                    positive: [
-                        "Technical resources and support are excellent",
-                        "Strong advocacy and government affairs work",
-                        "Valuable networking opportunities",
-                        "Quality education and certification programs",
-                        "Industry standards development"
-                    ],
-                    improvements: [
-                        "Need more contractor-focused resources",
-                        "Better regional representation",
-                        "More small business support",
-                        "Enhanced digital tools and resources",
-                        "Clearer value proposition communication"
-                    ]
-                },
-                
-                marketSpecificNeeds: {
-                    hardscape: [
-                        "More design tools and software",
-                        "Better contractor certification promotion",
-                        "Increased marketing support materials",
-                        "Regional installation guides"
-                    ],
-                    masonry: [
-                        "Updated technical specifications",
-                        "More structural engineering resources",
-                        "Code compliance assistance"
-                    ],
-                    msv: [
-                        "Installation best practices",
-                        "Quality standards development",
-                        "Market differentiation support"
-                    ]
-                },
-                
-                successDefinitions: [
-                    "Increased market share and industry growth",
-                    "Strong contractor network and engagement",
-                    "Effective advocacy wins",
-                    "Member business growth",
-                    "Industry recognition and standards adoption"
-                ]
-            },
-            
-            programImportance: {
-                "Codes & Standards": 4.6,
-                "Technical Resources": 4.5,
-                "Technical Support": 4.3,
-                "R&D Laboratory": 3.9,
-                "Government Affairs": 4.4,
-                "Producer Education": 4.1,
-                "Contractor Education": 4.5,
-                "CCPI Certification": 4.2,
-                "HNA Trade Show": 4.0,
-                "Meetings": 3.8,
-                "Precast Show": 3.5,
-                "Communications": 4.1,
-                "Workforce Development": 4.2,
-                "Peer Communities": 3.7
-            },
-            
-            summary: {
-                totalResponses: 133,
-                avgNPS: 7.4,
-                npsPromoters: 43,
-                npsPassives: 60,
-                npsDetractors: 30,
-                memberTypeDistribution: {
-                    "Producer": 94,
-                    "Associate": 25,
-                    "Contractor": 8,
-                    "Dealer": 4,
-                    "Professional": 2
-                },
-                satisfactionDistribution: {
-                    "Very Satisfied": 45,
-                    "Somewhat Satisfied": 58,
-                    "Neither": 18,
-                    "Somewhat Dissatisfied": 9,
-                    "Very Dissatisfied": 3
-                }
-            }
-        };
+    <!-- Load the complete survey data from external file -->
+    <script src="complete-survey-data.js"></script>
 
+    <script>
         // Global variables
         let conversationHistory = [];
         
@@ -497,20 +371,27 @@
         });
 
         function initializeChat() {
+            // Check if survey data is loaded
+            if (typeof surveyData === 'undefined') {
+                addMessage('bot', '❌ Error: Survey data not found. Please ensure complete-survey-data.js is in the same directory.');
+                return;
+            }
+
             const welcomeMessage = `Welcome to your CMHA Survey AI Assistant! 🎉
 
-I have access to complete survey data from ${surveyData.summary.totalResponses} member responses. The data includes:
+I have access to complete survey data from ${surveyData.responses.length} member responses with ${Object.keys(surveyData.responses[0] || {}).length} data points each.
 
-📊 **Quantitative Data**: Member types, market participation, satisfaction levels, NPS scores, value perceptions
-📝 **Qualitative Insights**: Open-ended feedback themes, improvement suggestions, success definitions
-⭐ **Program Ratings**: Importance scores for all CMHA programs and services
+📊 **Complete Dataset**: All survey responses with every question and answer
+📝 **Rich Analysis**: Member types, satisfaction levels, NPS scores, open-ended feedback
+⭐ **Deep Insights**: Program importance ratings, value perceptions, improvement suggestions
 
 I can help you:
 • Analyze patterns and correlations in the data
-• Identify key drivers of satisfaction and dissatisfaction
+• Identify key drivers of satisfaction and dissatisfaction  
 • Segment analysis by member type or market
 • Extract actionable recommendations
 • Compare different member segments
+• Explore specific responses and themes
 
 What would you like to explore? Try one of the example queries above or ask your own question!`;
             
@@ -549,6 +430,12 @@ What would you like to explore? Try one of the example queries above or ask your
             const message = input.value.trim();
             
             if (!message) return;
+            
+            // Check if survey data is available
+            if (typeof surveyData === 'undefined') {
+                addMessage('bot', '❌ Error: Survey data not loaded. Please refresh the page and ensure complete-survey-data.js is available.');
+                return;
+            }
             
             // Disable input during processing
             input.disabled = true;
@@ -593,25 +480,21 @@ What would you like to explore? Try one of the example queries above or ask your
         }
 
         async function callClaudeAPI(userMessage) {
-            const systemPrompt = `You are an expert survey data analyst with access to comprehensive CMHA (Concrete Masonry & Hardscape Association) member satisfaction survey data. 
+            const systemPrompt = `You are an expert survey data analyst with access to comprehensive CMHA (Concrete Masonry & Hardscape Association) member satisfaction survey data.
 
-The survey data includes:
-- ${surveyData.summary.totalResponses} total responses
-- Member types: Producer (${surveyData.summary.memberTypeDistribution.Producer}), Associate (${surveyData.summary.memberTypeDistribution.Associate}), Contractor (${surveyData.summary.memberTypeDistribution.Contractor}), Dealer (${surveyData.summary.memberTypeDistribution.Dealer}), Professional (${surveyData.summary.memberTypeDistribution.Professional})
-- Markets: Hardscape (H), Masonry (M), MSV/Stone Veneer (S)
-- Average NPS: ${surveyData.summary.avgNPS} (Promoters: ${surveyData.summary.npsPromoters}, Passives: ${surveyData.summary.npsPassives}, Detractors: ${surveyData.summary.npsDetractors})
-- Satisfaction levels: Very Satisfied (${surveyData.summary.satisfactionDistribution["Very Satisfied"]}), Somewhat Satisfied (${surveyData.summary.satisfactionDistribution["Somewhat Satisfied"]}), Neither (${surveyData.summary.satisfactionDistribution.Neither}), etc.
+The complete survey dataset includes:
+- ${surveyData.responses.length} total responses
+- ${Object.keys(surveyData.responses[0] || {}).length} data points per response
+- Complete member information, satisfaction ratings, NPS scores, open-ended feedback
+- Program importance ratings, value perceptions, and improvement suggestions
 
-Key program importance ratings (1-5 scale):
-${Object.entries(surveyData.programImportance).map(([program, rating]) => `- ${program}: ${rating}`).join('\n')}
+Sample of available data structure:
+${JSON.stringify(Object.keys(surveyData.responses[0] || {}), null, 2)}
 
-Survey data sample:
-${JSON.stringify(surveyData.responses.slice(0, 10), null, 2)}
+Survey data sample (first 3 responses):
+${JSON.stringify(surveyData.responses.slice(0, 3), null, 2)}
 
-Open-ended feedback themes:
-${JSON.stringify(surveyData.openEndedThemes, null, 2)}
-
-Please provide insightful, data-driven analysis based on this survey data. Use specific numbers and percentages where relevant. Focus on actionable insights and recommendations.`;
+Please provide insightful, data-driven analysis based on this complete survey dataset. Use specific numbers and percentages where relevant. Focus on actionable insights and recommendations. You have access to every single response and every question - use this rich dataset to provide comprehensive analysis.`;
 
             const messages = [
                 { role: 'user', content: systemPrompt },
