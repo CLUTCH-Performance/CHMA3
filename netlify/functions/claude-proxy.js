@@ -1,4 +1,4 @@
-// netlify/functions/claude-proxy.js (Alternative simpler version)
+// netlify/functions/claude-proxy.js (Updated with Claude Sonnet 4)
 exports.handler = async (event, context) => {
   console.log('Claude Proxy Function Called');
   console.log('Method:', event.httpMethod);
@@ -62,7 +62,7 @@ exports.handler = async (event, context) => {
 
     console.log(`Making request to Anthropic with ${messages.length} messages`);
 
-    // Use built-in fetch (available in Node.js 18+)
+    // Using Claude Sonnet 4 - the latest and most capable model for survey analysis
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -71,7 +71,7 @@ exports.handler = async (event, context) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514', // Latest Claude Sonnet 4
         max_tokens: maxTokens || 4000,
         messages: messages
       })
