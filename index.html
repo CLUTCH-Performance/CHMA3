@@ -279,52 +279,10 @@
             margin: 10px 25px;
             border-left: 4px solid #ef4444;
         }
-
-        .api-key-setup {
-            background: #fef3c7;
-            border: 2px solid #f59e0b;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px;
-            text-align: center;
-        }
-
-        .api-key-input {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .api-key-input input {
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            width: 300px;
-            font-family: monospace;
-        }
-
-        .api-key-input button {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
         
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
-            }
-
-            .api-key-input {
-                flex-direction: column;
-            }
-
-            .api-key-input input {
-                width: 100%;
             }
             
             .message-content {
@@ -338,14 +296,6 @@
             .data-stats {
                 flex-direction: column;
                 gap: 10px;
-            }
-
-            .api-key-input {
-                flex-direction: column;
-            }
-
-            .api-key-input input {
-                width: 100%;
             }
         }
     </style>
@@ -393,18 +343,6 @@
                     <button class="query-button">What correlates with high satisfaction?</button>
                     <button class="query-button">Summarize themes from open-ended feedback</button>
                 </div>
-            </div>
-
-            <div id="apiKeySetup" class="api-key-setup">
-                <h3>🔑 Setup Required</h3>
-                <p>Please enter your Anthropic API key to start using the AI assistant.</p>
-                <div class="api-key-input">
-                    <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
-                    <button onclick="saveApiKey()">Save Key</button>
-                </div>
-                <p style="margin-top: 10px; font-size: 14px; color: #6b7280;">
-                    Get your API key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
-                </p>
             </div>
             
             <div class="messages" id="messages"></div>
@@ -551,39 +489,12 @@
 
         // Global variables
         let conversationHistory = [];
-        let apiKey = localStorage.getItem('anthropic_api_key');
         
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            checkApiKey();
+            initializeChat();
             setupEventListeners();
         });
-
-        function checkApiKey() {
-            if (apiKey) {
-                document.getElementById('apiKeySetup').style.display = 'none';
-                initializeChat();
-            } else {
-                document.getElementById('messages').style.display = 'none';
-            }
-        }
-
-        function saveApiKey() {
-            const input = document.getElementById('apiKeyInput');
-            const key = input.value.trim();
-            
-            if (!key.startsWith('sk-ant-')) {
-                alert('Please enter a valid Anthropic API key (starts with sk-ant-)');
-                return;
-            }
-            
-            apiKey = key;
-            localStorage.setItem('anthropic_api_key', key);
-            
-            document.getElementById('apiKeySetup').style.display = 'none';
-            document.getElementById('messages').style.display = 'block';
-            initializeChat();
-        }
 
         function initializeChat() {
             const welcomeMessage = `Welcome to your CMHA Survey AI Assistant! 🎉
@@ -610,10 +521,6 @@ What would you like to explore? Try one of the example queries above or ask your
             // Example button handling
             document.getElementById('exampleButtons').addEventListener('click', function(event) {
                 if (event.target.classList.contains('query-button')) {
-                    if (!apiKey) {
-                        alert('Please set up your API key first');
-                        return;
-                    }
                     document.getElementById('messageInput').value = event.target.textContent;
                     sendMessage();
                 }
@@ -638,11 +545,6 @@ What would you like to explore? Try one of the example queries above or ask your
         }
 
         async function sendMessage() {
-            if (!apiKey) {
-                alert('Please set up your API key first');
-                return;
-            }
-
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
@@ -681,7 +583,7 @@ What would you like to explore? Try one of the example queries above or ask your
                 
                 // Show error
                 const errorMsg = error.message || 'An error occurred while processing your request.';
-                addMessage('bot', `❌ Error: ${errorMsg}\n\nPlease check your API key and try again.`);
+                addMessage('bot', `❌ Error: ${errorMsg}\n\nPlease check the server configuration and try again.`);
             } finally {
                 // Re-enable input
                 input.disabled = false;
@@ -725,7 +627,6 @@ Please provide insightful, data-driven analysis based on this survey data. Use s
                     },
                     body: JSON.stringify({
                         messages: messages,
-                        apiKey: apiKey,
                         maxTokens: 4000
                     })
                 });
@@ -774,15 +675,6 @@ Please provide insightful, data-driven analysis based on this survey data. Use s
             
             return messageId;
         }
-
-        // Add function to clear API key (for debugging)
-        function clearApiKey() {
-            localStorage.removeItem('anthropic_api_key');
-            location.reload();
-        }
-
-        // Add to window for debugging
-        window.clearApiKey = clearApiKey;
     </script>
 </body>
 </html>
