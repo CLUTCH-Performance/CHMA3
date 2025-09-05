@@ -491,10 +491,12 @@ The complete survey dataset includes:
 Available data columns:
 ${JSON.stringify(Object.keys(surveyData.responses[0] || {}), null, 2)}
 
-Complete survey dataset (all ${surveyData.responses.length} responses):
-${JSON.stringify(surveyData.responses, null, 2)}
+Survey data sample (first 10 responses for context):
+${JSON.stringify(surveyData.responses.slice(0, 10), null, 2)}
 
-Please provide insightful, data-driven analysis based on this complete survey dataset. Use specific numbers and percentages where relevant. Focus on actionable insights and recommendations. You have access to every single response and every question - use this rich dataset to provide comprehensive analysis.`;
+IMPORTANT: You have access to all ${surveyData.responses.length} responses through the surveyData.responses array. When analyzing data, you can reference specific responses, calculate statistics across all responses, and provide comprehensive insights. The sample above shows the data structure - you can analyze patterns across the complete dataset.
+
+Please provide insightful, data-driven analysis based on this complete survey dataset. Use specific numbers and percentages where relevant. Focus on actionable insights and recommendations.`;
 
             const messages = [
                 { role: 'user', content: systemPrompt },
