@@ -1,45 +1,68 @@
-// netlify/functions/claude-proxy.js
+// netlify/functions/claude-proxy.js (Alternative simpler version)
 exports.handler = async (event, context) => {
-  // Handle CORS preflight requests
+  console.log('Claude Proxy Function Called');
+  console.log('Method:', event.httpMethod);
+  console.log('Origin:', event.headers.origin);
+  
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
+      headers: corsHeaders,
       body: ''
     };
   }
 
-  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ error: 'Method not allowed' })
+      headers: corsHeaders,
+      body: JSON.stringify({ error: `Method ${event.httpMethod} not allowed` })
     };
   }
 
   try {
-    // Parse the request body
-    const { messages, apiKey, maxTokens = 4000 } = JSON.parse(event.body);
-
-    // Validate required fields
-    if (!messages || !apiKey) {
+    let requestData;
+    
+    try {
+      requestData = JSON.parse(event.body || '{}');
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
       return {
         statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ error: 'Missing required fields: messages and apiKey' })
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Invalid JSON body' })
       };
     }
 
-    // Make the request to Anthropic API
+    const { messages, apiKey, maxTokens } = requestData;
+
+    if (!messages || !Array.isArray(messages)) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Missing or invalid messages array' })
+      };
+    }
+
+    if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Missing or invalid API key' })
+      };
+    }
+
+    console.log(`Making request to Anthropic with ${messages.length} messages`);
+
+    // Use built-in fetch (available in Node.js 18+)
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -49,50 +72,46 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
-        max_tokens: maxTokens,
+        max_tokens: maxTokens || 4000,
         messages: messages
       })
     });
 
-    // Handle API response
+    console.log('Anthropic API Status:', response.status);
+
     if (!response.ok) {
-      const errorData = await response.text();
+      const errorText = await response.text();
+      console.error('Anthropic API Error:', errorText);
+      
       return {
         statusCode: response.status,
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        },
+        headers: corsHeaders,
         body: JSON.stringify({ 
-          error: 'Anthropic API error', 
-          details: errorData,
-          status: response.status 
+          error: 'Anthropic API Error',
+          status: response.status,
+          details: errorText
         })
       };
     }
 
     const data = await response.json();
+    console.log('Success! Response received from Anthropic');
 
-    // Return successful response
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
-      },
+      headers: corsHeaders,
       body: JSON.stringify(data)
     };
 
   } catch (error) {
-    console.error('Proxy function error:', error);
+    console.error('Function Error:', error);
     
     return {
       statusCode: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message 
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Internal Server Error',
+        message: error.message
       })
     };
   }
