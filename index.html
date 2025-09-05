@@ -488,11 +488,11 @@ The complete survey dataset includes:
 - Complete member information, satisfaction ratings, NPS scores, open-ended feedback
 - Program importance ratings, value perceptions, and improvement suggestions
 
-Sample of available data structure:
+Available data columns:
 ${JSON.stringify(Object.keys(surveyData.responses[0] || {}), null, 2)}
 
-Survey data sample (first 3 responses):
-${JSON.stringify(surveyData.responses.slice(0, 3), null, 2)}
+Complete survey dataset (all ${surveyData.responses.length} responses):
+${JSON.stringify(surveyData.responses, null, 2)}
 
 Please provide insightful, data-driven analysis based on this complete survey dataset. Use specific numbers and percentages where relevant. Focus on actionable insights and recommendations. You have access to every single response and every question - use this rich dataset to provide comprehensive analysis.`;
 
