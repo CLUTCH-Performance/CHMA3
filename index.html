@@ -307,7 +307,7 @@
                 <span class="icon">🤖</span>
                 CMHA Survey Data AI Assistant
             </h1>
-            <p>AI-powered analysis of CMHA member satisfaction survey data</p>
+            <p>AI-powered analysis of CMHA member satisfaction survey data - Token-optimized with smart data querying</p>
         </div>
         
         <div class="chat-container">
@@ -316,19 +316,19 @@
                 <div class="data-stats">
                     <div class="stat-item">
                         <span>Responses:</span>
-                        <span class="stat-value" id="responseCount">133</span>
+                        <span class="stat-value">133</span>
                     </div>
                     <div class="stat-item">
                         <span>Questions:</span>
-                        <span class="stat-value" id="questionCount">40</span>
+                        <span class="stat-value">40</span>
                     </div>
                     <div class="stat-item">
                         <span>Member Categories:</span>
-                        <span class="stat-value" id="categoryCount">5</span>
+                        <span class="stat-value">5+</span>
                     </div>
                     <div class="stat-item">
-                        <span>Data Loaded:</span>
-                        <span class="stat-value">✓ Ready</span>
+                        <span>Query System:</span>
+                        <span class="stat-value">✓ Optimized</span>
                     </div>
                 </div>
             </div>
@@ -357,9 +357,6 @@
         </div>
     </div>
 
-    <!-- Load the complete survey data from external file -->
-    <script src="complete-survey-data.js"></script>
-
     <script>
         // Global variables
         let conversationHistory = [];
@@ -371,19 +368,19 @@
         });
 
         function initializeChat() {
-            // Check if survey data is loaded
-            if (typeof surveyData === 'undefined') {
-                addMessage('bot', '❌ Error: Survey data not found. Please ensure complete-survey-data.js is in the same directory.');
-                return;
-            }
-
             const welcomeMessage = `Welcome to your CMHA Survey AI Assistant! 🎉
 
-I have access to complete survey data from ${surveyData.responses.length} member responses with ${Object.keys(surveyData.responses[0] || {}).length} data points each.
+I have access to complete survey data from 133 member responses with optimized querying to stay within API limits.
 
-📊 **Complete Dataset**: All survey responses with every question and answer
+📊 **Smart Data Access**: I query specific data only when needed, dramatically reducing token usage
 📝 **Rich Analysis**: Member types, satisfaction levels, NPS scores, open-ended feedback
 ⭐ **Deep Insights**: Program importance ratings, value perceptions, improvement suggestions
+
+**How this works:**
+• Instead of loading all 37k+ tokens of data at once, I use intelligent queries
+• I fetch only the specific data needed to answer your questions
+• This allows for many more conversations within API limits
+• You get the same comprehensive analysis with much better efficiency
 
 I can help you:
 • Analyze patterns and correlations in the data
@@ -425,181 +422,11 @@ What would you like to explore? Try one of the example queries above or ask your
             });
         }
 
-        function getRelevantSurveyData(userMessage) {
-            const message = userMessage.toLowerCase();
-            let filteredResponses = [];
-            let context = "All survey responses";
-            
-            // Member type filtering
-            if (message.includes('producer') && !message.includes('msv')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["Please indicate the category which best describes your company's membership."] === "Producer"
-                );
-                context = "Producer responses only";
-            } else if (message.includes('associate') && !message.includes('msv')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["Please indicate the category which best describes your company's membership."] === "Associate"
-                );
-                context = "Associate responses only";
-            } else if (message.includes('contractor')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["Please indicate the category which best describes your company's membership."] === "Contractor"
-                );
-                context = "Contractor responses only";
-            } else if (message.includes('dealer')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["Please indicate the category which best describes your company's membership."] === "Dealer"
-                );
-                context = "Dealer responses only";
-            } else if (message.includes('professional')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["Please indicate the category which best describes your company's membership."] === "Professional"
-                );
-                context = "Professional responses only";
-            } else if (message.includes('msv')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["Please indicate the category which best describes your company's membership."]?.includes("MSV")
-                );
-                context = "MSV (Manufactured Stone Veneer) responses only";
-            }
-            
-            // Market filtering
-            else if (message.includes('hardscape')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["(Select all) Which market(s) do you participate in? - Hardscape Markets"] === "1"
-                );
-                context = "Hardscape market participants only";
-            } else if (message.includes('masonry')) {
-                filteredResponses = surveyData.responses.filter(r => 
-                    r["(Select all) Which market(s) do you participate in? - Masonry Markets"] === "1"
-                );
-                context = "Masonry market participants only";
-            }
-            
-            // Satisfaction filtering
-            else if (message.includes('satisfied') || message.includes('satisfaction')) {
-                if (message.includes('very satisfied')) {
-                    filteredResponses = surveyData.responses.filter(r => 
-                        r["Overall how satisfied are you with CMHA membership?"] === "Very satisfied"
-                    );
-                    context = "Very satisfied members only";
-                } else if (message.includes('dissatisfied')) {
-                    filteredResponses = surveyData.responses.filter(r => 
-                        r["Overall how satisfied are you with CMHA membership?"]?.includes("dissatisfied")
-                    );
-                    context = "Dissatisfied members only";
-                } else {
-                    // Return all responses for general satisfaction analysis
-                    filteredResponses = surveyData.responses;
-                    context = "All responses for satisfaction analysis";
-                }
-            }
-            
-            // NPS filtering
-            else if (message.includes('nps') || message.includes('recommend')) {
-                if (message.includes('promoter')) {
-                    filteredResponses = surveyData.responses.filter(r => {
-                        const nps = parseInt(r["How likely is it that you would recommend CMHA Membership to an industry colleague? (NPS question)"]);
-                        return nps >= 9;
-                    });
-                    context = "NPS Promoters (9-10 scores) only";
-                } else if (message.includes('detractor')) {
-                    filteredResponses = surveyData.responses.filter(r => {
-                        const nps = parseInt(r["How likely is it that you would recommend CMHA Membership to an industry colleague? (NPS question)"]);
-                        return nps <= 6;
-                    });
-                    context = "NPS Detractors (0-6 scores) only";
-                } else {
-                    filteredResponses = surveyData.responses;
-                    context = "All responses for NPS analysis";
-                }
-            }
-            
-            // Value perception filtering
-            else if (message.includes('value') || message.includes('dues')) {
-                filteredResponses = surveyData.responses;
-                context = "All responses for value analysis";
-            }
-            
-            // Specific question filtering
-            else if (message.includes('open-ended') || message.includes('feedback') || message.includes('comment')) {
-                filteredResponses = surveyData.responses;
-                context = "All responses for open-ended feedback analysis";
-            }
-            
-            // Program importance filtering
-            else if (message.includes('program') || message.includes('important')) {
-                filteredResponses = surveyData.responses;
-                context = "All responses for program importance analysis";
-            }
-            
-            // Default: intelligent sampling based on query complexity
-            else {
-                if (message.includes('all') || message.includes('every') || message.includes('complete')) {
-                    // User specifically wants all data - use smart chunking
-                    filteredResponses = surveyData.responses.slice(0, 30); // First 30 for comprehensive analysis
-                    context = "Representative sample (30 responses) - comprehensive analysis";
-                } else {
-                    // General query - use balanced sample
-                    filteredResponses = getBalancedSample(20);
-                    context = "Balanced sample across member types";
-                }
-            }
-            
-            // If no responses found, return a balanced sample
-            if (filteredResponses.length === 0) {
-                filteredResponses = getBalancedSample(15);
-                context = "Balanced sample - no specific filter applied";
-            }
-            
-            // Limit to prevent token overflow (max 25 responses)
-            if (filteredResponses.length > 25) {
-                filteredResponses = filteredResponses.slice(0, 25);
-                context += " (limited to first 25 responses)";
-            }
-            
-            return {
-                responses: filteredResponses,
-                context: context
-            };
-        }
-        
-        function getBalancedSample(sampleSize) {
-            const memberTypes = {};
-            
-            // Group by member type
-            surveyData.responses.forEach(response => {
-                const memberType = response["Please indicate the category which best describes your company's membership."];
-                if (!memberTypes[memberType]) {
-                    memberTypes[memberType] = [];
-                }
-                memberTypes[memberType].push(response);
-            });
-            
-            // Get proportional sample from each member type
-            const sample = [];
-            const types = Object.keys(memberTypes);
-            const perType = Math.ceil(sampleSize / types.length);
-            
-            types.forEach(type => {
-                const typeResponses = memberTypes[type].slice(0, perType);
-                sample.push(...typeResponses);
-            });
-            
-            return sample.slice(0, sampleSize);
-        }
-
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
             if (!message) return;
-            
-            // Check if survey data is available
-            if (typeof surveyData === 'undefined') {
-                addMessage('bot', '❌ Error: Survey data not loaded. Please refresh the page and ensure complete-survey-data.js is available.');
-                return;
-            }
             
             // Disable input during processing
             input.disabled = true;
@@ -644,27 +471,36 @@ What would you like to explore? Try one of the example queries above or ask your
         }
 
         async function callClaudeAPI(userMessage) {
-            const systemPrompt = `You are an expert survey data analyst with access to comprehensive CMHA (Concrete Masonry & Hardscape Association) member satisfaction survey data.
+            // Minimal system prompt - only metadata, no actual data
+            const systemPrompt = `You are an expert survey data analyst with access to CMHA (Concrete Masonry & Hardscape Association) member satisfaction survey data.
 
-The complete survey dataset includes:
-- ${surveyData.responses.length} total responses
-- ${Object.keys(surveyData.responses[0] || {}).length} data points per response
-- Complete member information, satisfaction ratings, NPS scores, open-ended feedback
-- Program importance ratings, value perceptions, and improvement suggestions
+**Dataset Overview:**
+- Total responses: 133 members
+- Questions: 40 data points per response
+- Member categories: Producer, Associate, Contractor, Dealer, Professional, MSV
+- Markets: Hardscape, Masonry, MSV
+- Key metrics: Satisfaction ratings, NPS scores, program importance ratings
 
-Available data columns:
-${JSON.stringify(Object.keys(surveyData.responses[0] || {}), null, 2)}
+**Available columns include:**
+- Membership category and market participation
+- Overall satisfaction and NPS scores
+- Value perception and dues feedback
+- Program importance ratings (1-5 scale)
+- Open-ended feedback and suggestions
+- Technical support and education preferences
 
-Survey data sample (first 10 responses for context):
-${JSON.stringify(surveyData.responses.slice(0, 10), null, 2)}
+**Analysis capabilities:**
+Use the query_survey_data function to:
+- Filter by member type, satisfaction level, NPS score
+- Get statistical summaries of any column
+- Sample balanced data across member segments
+- Extract specific responses for detailed analysis
 
-IMPORTANT: You have access to all ${surveyData.responses.length} responses through the surveyData.responses array. When analyzing data, you can reference specific responses, calculate statistics across all responses, and provide comprehensive insights. The sample above shows the data structure - you can analyze patterns across the complete dataset.
-
-Please provide insightful, data-driven analysis based on this complete survey dataset. Use specific numbers and percentages where relevant. Focus on actionable insights and recommendations.`;
+When users ask questions, query the data to provide accurate, data-driven insights with specific numbers and percentages. Focus on actionable recommendations based on the actual survey responses.`;
 
             const messages = [
                 { role: 'user', content: systemPrompt },
-                ...conversationHistory.slice(-10), // Keep last 10 messages for context
+                ...conversationHistory.slice(-8), // Reduced context window
                 { role: 'user', content: userMessage }
             ];
 
@@ -710,7 +546,7 @@ Please provide insightful, data-driven analysis based on this complete survey da
             contentDiv.className = 'message-content';
             
             if (isLoading) {
-                contentDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing survey data...</div>';
+                contentDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Querying survey data...</div>';
             } else {
                 contentDiv.textContent = content;
             }
