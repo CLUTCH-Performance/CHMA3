@@ -1,8 +1,6 @@
 // netlify/functions/claude-proxy.js
 exports.handler = async (event, context) => {
   console.log('Claude Proxy Function Called');
-  console.log('Method:', event.httpMethod);
-  console.log('Origin:', event.headers.origin);
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -11,13 +9,8 @@ exports.handler = async (event, context) => {
     'Content-Type': 'application/json'
   };
 
-  // Handle preflight requests
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: ''
-    };
+    return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
   if (event.httpMethod !== 'POST') {
@@ -29,46 +22,52 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Get API key from environment variable
     const apiKey = process.env.ANTHROPIC_API_KEY_CMHA_SURVEY;
     
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY_CMHA_SURVEY environment variable not set');
       return {
         statusCode: 500,
         headers: corsHeaders,
-        body: JSON.stringify({ 
-          error: 'Server configuration error: API key not configured. Please set ANTHROPIC_API_KEY_CMHA_SURVEY environment variable in Netlify.' 
-        })
+        body: JSON.stringify({ error: 'API key not configured' })
       };
     }
 
-    let requestData;
-    
-    try {
-      requestData = JSON.parse(event.body || '{}');
-    } catch (parseError) {
-      console.error('JSON Parse Error:', parseError);
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Invalid JSON body' })
-      };
-    }
-
+    const requestData = JSON.parse(event.body || '{}');
     const { messages, maxTokens } = requestData;
 
-    if (!messages || !Array.isArray(messages)) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Missing or invalid messages array' })
-      };
-    }
+    // Define function tools for Claude
+    const tools = [
+      {
+        name: "query_survey_data",
+        description: "Query the CMHA survey dataset with filters and return specific data",
+        input_schema: {
+          type: "object",
+          properties: {
+            queryType: {
+              type: "string",
+              enum: ["filter", "summary", "stats", "sample"],
+              description: "Type of query to perform"
+            },
+            filters: {
+              type: "object",
+              description: "Filters to apply to the data"
+            },
+            columns: {
+              type: "array",
+              items: { type: "string" },
+              description: "Specific columns to return"
+            },
+            limit: {
+              type: "integer",
+              description: "Maximum number of rows to return (default 20)"
+            }
+          },
+          required: ["queryType"]
+        }
+      }
+    ];
 
-    console.log(`Making request to Anthropic with ${messages.length} messages`);
-
-    // Using Claude Sonnet 4 - the latest and most capable model for survey analysis
+    // Make the API call with function calling enabled
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -77,31 +76,57 @@ exports.handler = async (event, context) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', // Latest Claude Sonnet 4
+        model: 'claude-sonnet-4-20250514',
         max_tokens: maxTokens || 4000,
-        messages: messages
+        messages: messages,
+        tools: tools
       })
     });
 
-    console.log('Anthropic API Status:', response.status);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Anthropic API Error:', errorText);
-      
       return {
         statusCode: response.status,
         headers: corsHeaders,
-        body: JSON.stringify({ 
-          error: 'Anthropic API Error',
-          status: response.status,
-          details: errorText
-        })
+        body: JSON.stringify({ error: 'Anthropic API Error', details: errorText })
       };
     }
 
     const data = await response.json();
-    console.log('Success! Response received from Anthropic');
+
+    // Check if Claude wants to use tools
+    if (data.content && data.content.some(block => block.type === 'tool_use')) {
+      const results = await handleToolCalls(data.content);
+      
+      // Send results back to Claude
+      const followUpMessages = [
+        ...messages,
+        { role: 'assistant', content: data.content },
+        { role: 'user', content: results }
+      ];
+
+      const followUpResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: maxTokens || 4000,
+          messages: followUpMessages,
+          tools: tools
+        })
+      });
+
+      const followUpData = await followUpResponse.json();
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify(followUpData)
+      };
+    }
 
     return {
       statusCode: 200,
@@ -111,14 +136,43 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     console.error('Function Error:', error);
-    
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({
-        error: 'Internal Server Error',
-        message: error.message
-      })
+      body: JSON.stringify({ error: 'Internal Server Error', message: error.message })
     };
   }
 };
+
+async function handleToolCalls(content) {
+  const toolResults = [];
+  
+  for (const block of content) {
+    if (block.type === 'tool_use') {
+      try {
+        // Call our survey-query function
+        const queryResponse = await fetch(`${process.env.URL}/.netlify/functions/survey-query`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(block.input)
+        });
+        
+        const queryData = await queryResponse.json();
+        
+        toolResults.push({
+          type: 'tool_result',
+          tool_use_id: block.id,
+          content: JSON.stringify(queryData)
+        });
+      } catch (error) {
+        toolResults.push({
+          type: 'tool_result',
+          tool_use_id: block.id,
+          content: JSON.stringify({ error: error.message })
+        });
+      }
+    }
+  }
+  
+  return toolResults;
+}
